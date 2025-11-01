@@ -25,7 +25,7 @@ import torch.nn.functional as F
 from torchinfo import summary
 # import optuna
 
-from models.segformer import build_model
+from models.segformer import build_model, build_peft_model
 from dataloading.hls_burn_scars_dataset import create_dataloaders
 from experiments.metrics import compute_metrics, compute_iou, compute_accuracy
 
@@ -39,6 +39,7 @@ parser.add_argument('--data_dir', type=str, default=f"{PROJECT_DIR}/data/hls_bur
 parser.add_argument('--results_dir', type=str, default=f"{PROJECT_DIR}/results", help='Path to results directory')
 parser.add_argument('--exp_name', type=str, default='simpletune-1', help='Experiment name')
 parser.add_argument('--model_name', type=str, default="nvidia/segformer-b0-finetuned-ade-512-512")
+parser.add_argument('--model_params', type=str, nargs='+', default=['use_peft=False', 'lora_r=8', 'lora_alpha=16', 'lora_dropout=0.1'], help='Model parameters as key=value pairs')
 parser.add_argument('--training_params', type=str, nargs='+', default=['batch_size=4', 'epochs=100', 'lr=5e-4'], help='Training parameters as key=value pairs')
 parser.add_argument('--earlystop', action='store_true', help='Whether to use early stopping based on validation loss')
 parser.add_argument('--earlystop_params', type=str, nargs='+', default=['patience=10', 'min_delta=0.0001', 'warmup_epochs=5'], help='Early stopping parameters as key=value pairs')
@@ -153,6 +154,7 @@ def main():
 
     # Parse training params
     training_params = parse_params(args.training_params)
+    model_params = parse_params(args.model_params)
     earlystop_params = parse_params(args.earlystop_params)
 
     logging.info(f"Using device: {device}")
@@ -185,7 +187,18 @@ def main():
     
 
     # Model
-    model, _ = build_model(num_classes=num_classes, model_name=args.model_name)
+    if model_params['use_peft']:
+        base_model, _ = build_model(num_classes=num_classes, model_name=args.model_name)
+        peft_params = model_params.copy()
+        peft_params.pop('use_peft')
+        model = build_peft_model(base_model, **peft_params)
+    else:
+        model, _ = build_model(num_classes=num_classes, model_name=args.model_name)
+
+    # for name, module in model.named_modules():
+    #     if "attention" in name:
+    #         print(name)
+
     model = model.to(device)
     model_summary_path = os.path.join(RESULTS_DIR, 'model_summary.txt')
     with open(model_summary_path, 'w') as f:
@@ -206,8 +219,6 @@ def main():
     training_stats_log_path = os.path.join(RESULTS_DIR, 'plots', 'train', "training_logs.json")
     no_improve_epochs = 0
     for epoch in range(1, training_params['epochs'] + 1):
-        # logging.info(f"\nEpoch {epoch}/{training_params['epochs']}")
-
         train_logs = train_epoch(model, train_loader, criterion, optimizer, device)
         val_logs = evaluate(model, val_loader, criterion, device)
 
