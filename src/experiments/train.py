@@ -169,9 +169,9 @@ def main():
     logging.info(f"Results will be saved to: {RESULTS_DIR}")
 
     ## Save copy of this script to RESULTS_DIR along with args
-    os.system(f"cp {f"{PROJECT_DIR}/src/experiments/train.py"} {os.path.join(RESULTS_DIR, 'scripts', 'train_ambient_gan.py')}")
-    os.system(f"cp {f"{PROJECT_DIR}/src/models/segformer.py"} {os.path.join(RESULTS_DIR, 'scripts', 'ambient_gan.py')}")
-    os.system(f"cp {f"{PROJECT_DIR}/src/dataloading/hls_burn_scars_dataset.py"} {os.path.join(RESULTS_DIR, 'scripts', 'dataset.py')}")
+    os.system(f"cp {f"{PROJECT_DIR}/src/experiments/train.py"} {os.path.join(RESULTS_DIR, 'scripts', 'train.py')}")
+    os.system(f"cp {f"{PROJECT_DIR}/src/models/segformer.py"} {os.path.join(RESULTS_DIR, 'scripts', 'segformer.py')}")
+    os.system(f"cp {f"{PROJECT_DIR}/src/dataloading/hls_burn_scars_dataset.py"} {os.path.join(RESULTS_DIR, 'scripts', 'hls_burn_scars_dataset.py')}")
     with open(os.path.join(RESULTS_DIR, 'scripts', 'train.json'), 'w') as f: json.dump(vars(args), f, indent=4)
 
 
@@ -204,7 +204,7 @@ def main():
         'iou': {'train': [], 'val': []}
     }
     training_stats_log_path = os.path.join(RESULTS_DIR, 'plots', 'train', "training_logs.json")
-
+    no_improve_epochs = 0
     for epoch in range(1, training_params['epochs'] + 1):
         # logging.info(f"\nEpoch {epoch}/{training_params['epochs']}")
 
