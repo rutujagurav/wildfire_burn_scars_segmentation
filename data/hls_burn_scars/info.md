@@ -1,0 +1,1 @@
+Dataset download - `wget https://huggingface.co/datasets/ibm-nasa-geospatial/hls_burn_scars/resolve/main/hls_burn_scars.tar.gz`
