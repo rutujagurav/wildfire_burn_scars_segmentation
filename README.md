@@ -1,0 +1,1 @@
+# Wildfire Burn Scars Segmentation using pre-trained SegFormer Models

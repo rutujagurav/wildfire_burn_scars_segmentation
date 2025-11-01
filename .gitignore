@@ -1,0 +1,10 @@
+**/__pycache__/
+**/deprecated/
+**/dev/
+**/private/
+**/.ipynb_checkpoints/
+**/*.sub
+data/
+stdout/
+results/
+notes.md
